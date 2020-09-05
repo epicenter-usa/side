@@ -79,27 +79,33 @@ get_block_data_state <- function(state) {
   
   get_blocks <- function(county) {
     print(county)
+    
     data_acs_block <- tidycensus::get_acs(
       geography = "block group", 
       state = state, 
       county = county,
       variables = "B01003_001E", 
       geometry = TRUE)
+    
     data_acs_block$county_fips <- county
     data_acs_block$state <- state
+    
     return(data_acs_block)
   }
   
   blocks_data_list <- map(counties_list, get_blocks)
   
-  state_blocks_data <- bind_rows(blocks_data_list)
+  state_blocks_data <- do.call(rbind, blocks_data_list)
+  
+  
   
   print(paste("End of state", state))
   
   return(state_blocks_data)
 }
 
-texas_data <- get_block_data_state("TX")
+#texas_data <- get_block_data_state("TX")
+
 RI_data <- get_block_data_state("RI")
 
 sum(texas_data$estimate)
@@ -165,6 +171,13 @@ data_acs_block_ak <- tidycensus::get_acs(
   geometry = TRUE)
 
 
+data_acs_block_ri_1 <- tidycensus::get_acs(
+  geography = "block group", 
+  state = "RI", 
+  county = 1,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
 data_acs_block_ri_2 <- tidycensus::get_acs(
   geography = "block group", 
   state = "RI", 
@@ -173,15 +186,24 @@ data_acs_block_ri_2 <- tidycensus::get_acs(
   geometry = TRUE)
 
 
-ri1 <- st_set_geometry(data_acs_block_ak, NULL) 
-ri2 <- st_set_geometry(data_acs_block_ri, NULL)
+ri1 <- st_set_geometry(data_acs_block_ri_1, NULL) 
+ri2 <- st_set_geometry(data_acs_block_ri_2, NULL)
 
 ri <- bind_rows(ri1, ri2)
-ri_sf <- st_sf(ri, geometry = c(data_acs_block_ak$geometry,data_acs_block_ri$geometry))
+ri_sf <- st_sf(ri, geometry = c(data_acs_block_ri_1$geometry,data_acs_block_ri_2$geometry))
+
+ri_sf1 <- bind_rows(list(data_acs_block_ri_1, data_acs_block_ri_2))
+ri_sf2 <- do.call(rbind, list(data_acs_block_ri_1, data_acs_block_ri_2))
 
 ggplot() +
   geom_sf(data = data_acs_block_ri, fill = "coral") +
   geom_sf(data = data_acs_block_ri_2, fill = "dodgerblue")
 
-ggplot(ri_sf) +
+ggplot(ri_sf1) +
+  geom_sf()
+
+ggplot(ri_sf2) +
+  geom_sf()
+
+ggplot(RI_data) +
   geom_sf()
