@@ -6,7 +6,13 @@ library(sf)
 
 census_api_key("c06729f47ca727f264fec12b37bb65ab2806188f", install = T)
 
-data_dec <- tidycensus::get_decennial(geography = "state", variables = "P001001", geometry = TRUE)
+data_dec_states <- tidycensus::get_decennial(
+  geography = "state", 
+  variables = "P001001", 
+  geometry = FALSE)
+
+saveRDS(data_dec_states, file = "./data/states_pops_dec.rds")
+
 sum(data_dec$value)
 
 data_dec_block <- tidycensus::get_decennial(geography = "block group", variables = "P001001", geometry = TRUE)
