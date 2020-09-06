@@ -100,24 +100,37 @@ get_block_data_state <- function(state) {
   #blocks_data_list <- map(counties_list, get_blocks)
   #state_blocks_data <- do.call(rbind, blocks_data_list)
   
-  states_processed_block[[state]] <- list()
+  counties_processed <- list()
+  counties_with_error <- c()
+  
+  print(counties_list)
   
   for (county in counties_list) {
-    states_processed_block[[state]][[county]] <- get_block_data_state(county)
+    tryCatch(
+      counties_processed[[county]] <- get_blocks(county),
+      error = function(e) {
+        counties_with_error <- c(counties_with_error, county)
+      }
+    ) 
   }
   
   print(paste("End of state", state))
+  print(paste("Counties with error", counties_with_error))
   
-  return()
+  return(counties_processed)
 }
 
 # process
 
 states_processed_block <- list()
 
-#states_processed_block[["AL"]] <- get_block_data_state("AL")
+# ok states_processed_block[["AL"]] <- get_block_data_state("AL")
+states_processed_block[["DC"]] <- get_block_data_state("DC")
 
-get_block_data_state("AL")
+dc <- do.call(rbind, states_processed_block[["DC"]])
+ggplot(dc) + geom_sf()
+
+saveRDS(states_processed_block, file = "states_block_level.rds")
 
 for (state_no in 3:10) {
   states_processed[[state.abb[state_no]]] <- get_block_group_data_state(state.abb[state_no])
