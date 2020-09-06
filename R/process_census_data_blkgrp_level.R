@@ -3,6 +3,7 @@ library(tidyverse)
 library(colorspace)
 library(stringr)
 library(sf)
+library(geojsonsf)
 options(tigris_use_cache = TRUE)
 
 
@@ -122,16 +123,39 @@ get_block_data_state <- function(state) {
 
 # process
 
+# for (state_no in 3:10) {
+#   states_processed[[state.abb[state_no]]] <- get_block_group_data_state(state.abb[state_no])
+# }
+
 states_processed_block <- list()
 
 # ok states_processed_block[["AL"]] <- get_block_data_state("AL")
 states_processed_block[["DC"]] <- get_block_data_state("DC")
 
+saveRDS(states_processed_block, file = "./data/states_block_level.rds")
+
+
+# DC experiment -----------------------------------------------------------
+
 dc <- do.call(rbind, states_processed_block[["DC"]])
+sum(dc$value)
+dc_block_group <- get_block_group_data_state("DC")
+
 ggplot(dc) + geom_sf()
+ggplot(dc_block_group) + geom_sf()
 
-saveRDS(states_processed_block, file = "states_block_level.rds")
+saveRDS(dc, "./data/dc_block_level.rds")
+saveRDS(dc_block_group, "./data/dc_block_group_level.rds")
 
-for (state_no in 3:10) {
-  states_processed[[state.abb[state_no]]] <- get_block_group_data_state(state.abb[state_no])
-}
+dc_geojson <- geojsonsf::sf_geojson(dc)
+dc_blkgrp_geojson <- geojsonsf::sf_geojson(dc_block_group)
+
+write_file(dc_geojson,        "./data/dc_block.geojson")
+write_file(dc_blkgrp_geojson, "./data/dc_block_group.geojson")
+
+
+
+
+
+
+
