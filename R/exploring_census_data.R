@@ -207,3 +207,98 @@ ggplot(ri_sf2) +
 
 ggplot(RI_data) +
   geom_sf()
+
+
+
+# test with NYC data ------------------------------------------------------
+
+
+
+state_counties_ny <- get_decennial(
+  geography = "county",
+  state = "NY",
+  variable = "COUNTY"
+)
+
+tracts_nyc <- tidycensus::get_acs(
+  geography = "tract", 
+  state = "NY", 
+  county = 61,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+blocks_nyc <- tidycensus::get_acs(
+  geography = "block group", 
+  state = "NY", 
+  county = 61,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+ggplot() +
+  geom_sf(data = blocks_nyc, fill = "ghostwhite", color = "#FF7F5050") +
+  geom_sf(data = tracts_nyc, fill = "transparent", color = "#1E90FF50") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+states <- tidycensus::get_acs(
+  geography = "state", 
+  state = state.abb, 
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+ggplot(states) + 
+  geom_sf(fill = ifelse(states$NAME == "Rhode Island", "coral", "ghostwhite")) +
+  xlim(c(-130, -60)) +
+  ylim(c(25,50)) +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+
+state_RI <- tidycensus::get_acs(
+  geography = "state", 
+  state = "RI", 
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+county_RI <- tidycensus::get_acs(
+  geography = "county", 
+  state = "RI", 
+  county = 3,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+tracts_RI <- tidycensus::get_acs(
+  geography = "tract", 
+  state = "RI", 
+  county = 3,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+blkgrp_RI <- tidycensus::get_acs(
+  geography = "block group", 
+  state = "RI", 
+  county = 3,
+  variables = "B01003_001E", 
+  geometry = TRUE)
+
+blocks_RI <- tidycensus::get_decennial(
+  geography = "block", 
+  state = "RI", 
+  county = 3,
+  variables = "P001001", #"B01003_001E", 
+  geometry = TRUE)
+
+
+
+ggplot() +
+  geom_sf(data = state_RI, fill = "ghostwhite") +
+  geom_sf(data = county_RI, fill = "#FF7F50") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+ggplot() +
+  geom_sf(data = blocks_RI, fill = "ghostwhite", color = "#FF7F5050") +
+  geom_sf(data = blkgrp_RI, fill = "transparent", color = "#8F00FF50") +
+  geom_sf(data = tracts_RI, fill = "transparent", color = "#1890FF50") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
