@@ -33,13 +33,15 @@ coasts <- list()
 
 coasts[["east_coast"]] <- geojson_sf("./data/coast_polygons/east_coast.json")
 coasts[["west_coast"]] <- geojson_sf("./data/coast_polygons/west_coast.json")
-coasts[["alaska_coast"]] <- geojson_sf("./data/coast_polygons/alaska.json")
+coasts[["alaska_coast"]] <- geojson_sf("./data/coast_polygons/alaska_adjusted.json")
+coasts[["alaska_orient"]] <- geojson_sf("./data/coast_polygons/alaska_orient.json")
 coasts[["hawaii_coast"]] <- geojson_sf("./data/coast_polygons/hawaii.json")
 coasts[["puerto_rico_coast"]] <- geojson_sf("./data/coast_polygons/puerto_rico.json")
 
 coasts_sf <- coasts[[1]]
 
 for (i in 1:length(coasts)) {
+  print(i)
   st_crs(coasts[[i]]) <- st_crs(usa)
   if (i > 1) coasts_sf <- sf::st_union(coasts_sf, coasts[[i]])
 }
@@ -53,17 +55,18 @@ usa_expanded <- sf::st_union(
 ggplot(usa_expanded) + geom_sf() + xlim(-200,-60)
 ggplot(usa) + geom_sf() + xlim(-200,-60)
 
-world <- geojson_sf("world.geojson")
-litoral <- geojson_sf("br_litoral.geojson")
 
-st_crs(litoral) <- st_crs(br)
-br_com_litoral <- sf::st_union(br, litoral)
 
-ggplot(br_com_litoral) + geom_sf()
+# world -------------------------------------------------------------------
 
-st_crs(world) <- st_crs(br)
+world <- geojson_sf("./data/world.geojson")
+
+st_crs(world) <- st_crs(usa)
 
 world_crs <- st_transform(world, st_crs(world))
 
-br_mask <- sf::st_difference(world_crs, br_com_litoral)
+usa_mask <- sf::st_difference(world_crs, usa_expanded)
 
+saveRDS(usa_mask, "./data/usa_mask.rds")
+
+ggplot(usa_mask) + geom_sf(fill = "lightcoral")
