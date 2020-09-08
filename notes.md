@@ -12,6 +12,19 @@ https://api.census.gov/data/2010/dec/sf1/variables.html
 #### American Community Survey data API reference: variables
 https://api.census.gov/data/2018/acs/acs5/variables.html
 
+#### Acesso direto aos shapes
+
+No nível de Block Group, por estado
+https://www2.census.gov/geo/tiger/TIGER2019/BG/
+
+Estados Unidos todo
+https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
+
+#### Gerando a máscara dos EUA
+
+https://www.keene.edu/campus/maps/tool/
+
+
 #### SO
 
 ##### Combining sf objects (spoiler: do.call(rbind, list_of_objs))
