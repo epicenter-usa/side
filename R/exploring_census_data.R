@@ -24,6 +24,7 @@ data_dec_block <- tidycensus::get_decennial(geography = "block group", variables
 sum(data_dec$value)
 
 data_acs <- tidycensus::get_acs(geography = "state", variables = "B01003_001E")
+#saveRDS(data_acs, file = "./data/states_pops_acs.rds")
 sum(data_acs$estimate)
 
 
@@ -314,3 +315,10 @@ ggplot() +
   geom_sf(data = tracts_RI, fill = "transparent", color = "#1890FF50") +
   theme_bw() +
   theme(panel.grid = element_blank())
+
+
+
+# DC ----------------------------------------------------------------------
+
+dc_bg <- readRDS("./data/dc_block_group_level.rds")
+ggplot(dc_bg) + geom_sf()
