@@ -68,5 +68,9 @@ world_crs <- st_transform(world, st_crs(world))
 usa_mask <- sf::st_difference(world_crs, usa_expanded)
 
 saveRDS(usa_mask, "./data/usa_mask.rds")
+usa_mask <- read_rds("./data/usa_mask.rds")
 
 ggplot(usa_mask) + geom_sf(fill = "lightcoral")
+
+usa_mask_geojson <- geojsonsf::sf_geojson(usa_mask)
+write_file(usa_mask_geojson, "./data/to_mapbox/usa_mask.geojson")
