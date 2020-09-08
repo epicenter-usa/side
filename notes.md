@@ -53,3 +53,18 @@ https://www.census.gov/data/academy/courses/choroplethr.html
 ### Processamento dos Counties
 
 AK, County 270
+
+
+#### Tilesets
+
+World mask
+tiagombp.cotke4p0
+usa_mask-3mkk8m
+
+
+|            | Municipalities     | Counties          |
+|------------|----------------------------------------|
+| Tileset ID | tiagombp.95ss0c3b  | tiagombp.cotke4p0 |
+| Layer Name | municipalities     | counties-dl6qdm   |
+
+
