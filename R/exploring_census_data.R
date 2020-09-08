@@ -62,6 +62,7 @@ ggplot(plot_county) +
   geom_sf(color = NA, aes(fill = pop_faixa)) +
   scale_fill_discrete_sequential(palette = "SunsetDark") +
   labs(fill = "Faixa população") +
+  xlim(-200, -60) +
   theme_bw() +
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
