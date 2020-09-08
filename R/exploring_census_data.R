@@ -11,6 +11,11 @@ data_dec_states <- tidycensus::get_decennial(
   variables = "P001001", 
   geometry = FALSE)
 
+usa <- tidycensus::get_acs(geography = "nation", variables = "B01003_001E", geometry = TRUE)
+
+usa <- sf::read_sf("./data/cb_2018_us_nation_5m")
+ggplot(usa) + geom_sf()
+
 saveRDS(data_dec_states, file = "./data/states_pops_dec.rds")
 
 sum(data_dec$value)
