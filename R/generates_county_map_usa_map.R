@@ -21,7 +21,7 @@ write_file(counties, "./data/to_mapbox/counties.geojson")
 
 # usa map -----------------------------------------------------------------
 
-usa <- tidycensus::get_acs(geography = "nation", variables = "B01003_001E", geometry = TRUE)
+#usa <- tidycensus::get_acs(geography = "nation", variables = "B01003_001E", geometry = TRUE)
 
 usa <- sf::read_sf("./data/cb_2018_us_nation_5m")
 ggplot(usa) + geom_sf()
@@ -29,5 +29,41 @@ ggplot(usa) + geom_sf()
 
 # expanded coasts
 
+coasts <- list()
 
+coasts[["east_coast"]] <- geojson_sf("./data/coast_polygons/east_coast.json")
+coasts[["west_coast"]] <- geojson_sf("./data/coast_polygons/west_coast.json")
+coasts[["alaska_coast"]] <- geojson_sf("./data/coast_polygons/alaska.json")
+coasts[["hawaii_coast"]] <- geojson_sf("./data/coast_polygons/hawaii.json")
+coasts[["puerto_rico_coast"]] <- geojson_sf("./data/coast_polygons/puerto_rico.json")
+
+coasts_sf <- coasts[[1]]
+
+for (i in 1:length(coasts)) {
+  st_crs(coasts[[i]]) <- st_crs(usa)
+  if (i > 1) coasts_sf <- sf::st_union(coasts_sf, coasts[[i]])
+}
+
+ggplot(coasts_sf) + geom_sf()
+
+usa_expanded <- sf::st_union(
+  usa, 
+  coasts_sf)
+
+ggplot(usa_expanded) + geom_sf() + xlim(-200,-60)
+ggplot(usa) + geom_sf() + xlim(-200,-60)
+
+world <- geojson_sf("world.geojson")
+litoral <- geojson_sf("br_litoral.geojson")
+
+st_crs(litoral) <- st_crs(br)
+br_com_litoral <- sf::st_union(br, litoral)
+
+ggplot(br_com_litoral) + geom_sf()
+
+st_crs(world) <- st_crs(br)
+
+world_crs <- st_transform(world, st_crs(world))
+
+br_mask <- sf::st_difference(world_crs, br_com_litoral)
 
