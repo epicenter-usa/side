@@ -68,19 +68,19 @@
 <body>
     <div class="map-container">
         <div id='map' style='width: 100vw; height: 100vh;'></div>
-        <div class="tooltip"><p>Escolha qualquer local do Universo, desde que seja o centro de Ponta Grossa.</p></div>
+        <!--<div class="tooltip"><p>Escolha qualquer local do Universo, desde que seja o centro de Ponta Grossa.</p></div>-->
     </div>
 
     <div id="log">
-        <p class="botoes" data-id="draw-circle"><span>1. Desenha o círculo</span></p>
-        <p class="botoes" data-id="fit-circle"><span>2. Ajusta ao círculo</span></p>
-        <p class="botoes" data-id="show-tracts"><span>3. Mostra os setores</span></p>
-        <p class="botoes" data-id="select-tract"><span>4. Seleciona um setor</span></p>
-        <p class="botoes" data-id="show-features"><span>5. Mostra os features</span></p>
-        <p class="botoes" data-id="show-liveable"><span>6. Mostra o setor líquido</span></p>
-        <p class="botoes" data-id="show-bbox"><span>7. Mostra bbox</span></p>
-        <p class="botoes" data-id="show-points-bbox"><span>8. Mostra pontos no BBOX</span></p>
-        <p class="botoes" data-id="show-points-inside"><span>9. Mostra pontos dentro</span></p>
+        <p class="botoes" data-id="draw-circle"><span>1. Draws the circle</span></p>
+        <p class="botoes" data-id="fit-circle"><span>2. Fits circle to screen</span></p>
+        <p class="botoes" data-id="show-tracts"><span>3. Show block groups</span></p>
+        <p class="botoes" data-id="select-tract"><span>4. Select a block group</span></p>
+        <p class="botoes" data-id="show-features"><span>5. Highlight "unlivable" features</span></p>
+        <p class="botoes" data-id="show-liveable"><span>6. Show "livable" area</span></p>
+        <p class="botoes" data-id="show-bbox"><span>7. Show bbox</span></p>
+        <p class="botoes" data-id="show-points-bbox"><span>8. Populate BBOX</span></p>
+        <p class="botoes" data-id="show-points-inside"><span>9. Show dots inside blkgroup</span></p>
 
     </div>
 
@@ -303,7 +303,7 @@
 
                 let razao = area_bbox / area_liquida;
 
-                console.log("Áreas: \n", "Setor: ", area_liquida, "\n BBOX: ", area_bbox, "\n Razão: ", razao);
+                console.log("Land Areas: \n", "Block Group: ", area_liquida, "\n BBOX: ", area_bbox, "\n Ratio: ", razao);
 
                 let pontos = turf.randomPoint(pop * razao, {bbox: bbox_setor});
 
@@ -341,10 +341,11 @@
                     }});//,
                     //"road-minor-low");
 
-                console.log("População: ", pop,
-                          "\nPontos totais: ", pontos.features.length,
-                          "\nPontos dentro: ", pontos_dentro.features.length,
-                          "\nRazão: ", pontos.features.length / pontos_dentro.features.length)
+                console.log("Population: ", pop,
+                          "\nTotal dots: ", pontos.features.length,
+                          "\nDots inside: ", pontos_dentro.features.length,
+                          "\nRatio: ", pontos.features.length / pontos_dentro.features.length,
+                          "\nDots inside / pop: ", pontos_dentro.features.length/pop)
             }
 
             function showPointsInside() {
@@ -394,7 +395,7 @@ map.on('load', function() {
                             showFeatures();
                             break;   
                         case "select-tract":
-                            selectOneTract("110010108002");
+                            selectOneTract("110010101002");
                             break; 
                         case "show-liveable":
                             getUsefulTractArea()
