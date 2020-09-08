@@ -16,8 +16,40 @@ options(tigris_use_cache = TRUE)
 
 data_acs_county <- readRDS("./data/pop_county_shapes_acs.rds")
 
-counties <- geojsonsf::sf_geojson(data_acs_county)
+# faltou DC, que não está em state.abb! :/
+#data_acs_county_dc_pr <- tidycensus::get_acs(geography = "county", state = c("DC", "PR"), variables = "B01003_001E", geometry = TRUE)
+#saveRDS(data_acs_county_dc_pr, file = "./data/pop_county_shapes_acs_dc_pr.rds")
+
+data_acs_county_dc_pr <- readRDS("./data/pop_county_shapes_acs_dc_pr.rds")
+
+lista_county <- list(data_acs_county, data_acs_county_dc_pr)
+
+data_acs_county_full <- do.call(rbind, lista_county)
+
+
+# checks population of counties dataset -----------------------------------
+
+counties_no_sf <- data_acs_county_full
+st_geometry(counties_no_sf) <- NULL
+
+data_acs <- readRDS("./data/states_pops_acs.rds")
+
+pop_state <- counties_no_sf %>% 
+  mutate(GEOID = str_sub(GEOID,1,2)) %>%
+  group_by(GEOID) %>%
+  summarise(pop = sum(estimate)) %>%
+  ungroup() %>%
+  right_join(data_acs) %>%
+  mutate(dif_pop = estimate - pop)
+
+
+
+# convert counties map to geojson -----------------------------------------
+
+counties <- geojsonsf::sf_geojson(data_acs_county_full)
 write_file(counties, "./data/to_mapbox/counties.geojson")
+
+
 
 # usa map -----------------------------------------------------------------
 
