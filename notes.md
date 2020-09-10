@@ -68,3 +68,14 @@ usa_mask-3mkk8m
 | Layer Name | municipalities     | counties-dl6qdm   |
 
 
+
+### WaPo's Repo
+
+Basic:
+
+1. Clone Repo
+2 and 3:
+```
+npm i
+npm start
+```
