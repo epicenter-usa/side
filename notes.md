@@ -79,3 +79,35 @@ Basic:
 npm i
 npm start
 ```
+
+### SSH / Git / Cloning Linux
+
+Connecting to GitHub with SSH
+https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh
+
+Generating a new SSH key (https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+Checking for existing SSH keys (https://docs.github.com/en/github/authenticating-to-github/checking-for-existing-ssh-keys)
+Adding your SSH key to the ssh-agent
+Adding a new SSH key to your GitHub account (https://docs.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account)
+* Installing xclip
+* Copying the SSH key to the clipboard
+Testing your SSH connection (https://docs.github.com/en/github/authenticating-to-github/testing-your-ssh-connection)
+
+```bash
+ssh-keygen -t rsa -b 4096 -C "tiagombp@gmail.com"`
+
+ls -al ~/.ssh
+
+eval "$(ssh-agent -s)"
+
+ssh-add /home/tiago/.ssh/id_rsa
+
+sudo apt-get install xclip
+
+xclip -sel clip < /home/tiago/.ssh/id_rsa.pub
+
+ssh -T git@github.com
+``
+
+
+
