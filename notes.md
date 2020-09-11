@@ -107,7 +107,7 @@ sudo apt-get install xclip
 xclip -sel clip < /home/tiago/.ssh/id_rsa.pub
 
 ssh -T git@github.com
-``
+```
 
 
 
