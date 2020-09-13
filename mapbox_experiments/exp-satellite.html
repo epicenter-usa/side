@@ -72,7 +72,7 @@
     </div>
 
     <div id="log">
-        <p class="botoes" data-id="switch-style"><span>0. Switch from satellite to map</span></p>
+        <p class="botoes" data-id="switch-style"><span>0. Switch between satellite and map</span></p>
         <p class="botoes" data-id="draw-circle"><span>1. Draws the circle</span></p>
         <p class="botoes" data-id="fit-circle"><span>2. Fits circle to screen</span></p>
         <p class="botoes" data-id="show-tracts"><span>3. Show block groups</span></p>
@@ -94,17 +94,27 @@
         let lon = center[0];
         //let point_on_circle = [-49.034159375, -26.9196];
 
+        const style_mb = {
+            "state" : "sat",
+            "urls" : {
+                "sat" : "mapbox://styles/tiagombp/ckf15z5dz0i1219rdsjc5sxad",
+                "map" : "mapbox://styles/tiagombp/cketv7ns10nox19p031mkqjbc"
+            }
+        };
+
         mapboxgl.accessToken = 'pk.eyJ1IjoidGlhZ29tYnAiLCJhIjoiY2thdjJmajYzMHR1YzJ5b2huM2pscjdreCJ9.oT7nAiasQnIMjhUB-VFvmw';
 
         var map = new mapboxgl.Map({
             container: 'map', // container id
-            style: 'mapbox://styles/mapbox/satellite-v9', // replace this with your style URL
+            style: style_mb.urls["sat"], // replace this with your style URL
             center: center,//[-50.17446345137495, -25.081729411274424], 
             zoom: 15
         });
 
         function switchStyle() {
-            map.setStyle('mapbox://styles/tiagombp/cketv7ns10nox19p031mkqjbc');
+            style_mb.state = style_mb.state == "map" ? "sat" : "map";
+            console.log(style_mb.state, style_mb.urls[style_mb.state])
+            map.setStyle(style_mb.urls[style_mb.state]);
         }
             
         function draw_circle(center, point_on_circle) {
