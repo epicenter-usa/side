@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
+    <script src='external_scripts/turf.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet' />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+
+        .map-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        #log {
+            position: absolute;
+            bottom: 30px;
+            width: 300px;
+            left: 10px;
+            font-size: 0.7rem;
+            font-family: "Fira Code", monospace;
+            z-index: 2;
+        }
+
+        #log p {
+            margin-bottom: 1px;
+        }
+
+        #log p span {
+            background-color: #333;
+            color: ghostwhite;
+        }
+
+        #log p.botoes {
+            cursor: pointer;
+            border-radius: .5em;
+            margin-bottom: .5em;
+            padding: .5em;
+            color: ghostwhite;
+            margin-right: .5em;
+            display: inline-block;
+            background-color: #313131;
+            border: 1px solid #313131;
+        }
+
+        #log p.botoes.selecionado {
+            background-color: ghostwhite;
+            color: #313131;
+        }   
+
+        img.satellite-overlay {
+            position: absolute;
+            z-index: 1;
+        }     
+
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <img src="" class="satellite-overlay" alt="satellite image of the neighbourhood around the location provided"></img>
+        <div id='map' style='width: 100vw; height: 100vh;'></div>
+        <!--<div class="tooltip"><p>Escolha qualquer local do Universo, desde que seja o centro de Ponta Grossa.</p></div>-->
+    </div>
+
+    <div id="log">
+        <p class="botoes" data-id="switch-satellite"><span>0. Switch between satellite and map</span></p>
+        <p class="botoes" data-id="draw-circle"><span>1. Draws the circle</span></p>
+        <p class="botoes" data-id="fit-circle"><span>2. Fits circle to screen</span></p>
+        <p class="botoes" data-id="show-tracts"><span>3. Show block groups</span></p>
+        <p class="botoes" data-id="select-tract"><span>4. Select a block group</span></p>
+        <p class="botoes" data-id="show-features"><span>5. Highlight "unlivable" features</span></p>
+        <p class="botoes" data-id="show-liveable"><span>6. Show "livable" area</span></p>
+        <p class="botoes" data-id="show-bbox"><span>7. Show bbox</span></p>
+        <p class="botoes" data-id="show-points-bbox"><span>8. Populate BBOX</span></p>
+        <p class="botoes" data-id="show-points-inside"><span>9. Show dots inside blkgroup</span></p>
+
+    </div>
+
+    <script>
+
+        let tok = 'pk.eyJ1IjoidGlhZ29tYnAiLCJhIjoiY2thdjJmajYzMHR1YzJ5b2huM2pscjdreCJ9.oT7nAiasQnIMjhUB-VFvmw';
+        let circle, setores, poligono_features, 
+        setores_dentro, setor_destacado, setor_liquido, features_no_setor;
+        let center = [-77.0313265, 38.90269];
+        let lat = center[1];
+        let lon = center[0];
+        //let point_on_circle = [-49.034159375, -26.9196];
+
+        mapboxgl.accessToken = tok;
+
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/tiagombp/cketv7ns10nox19p031mkqjbc', // replace this with your style URL
+            center: center,//[-50.17446345137495, -25.081729411274424], 
+            zoom: 15
+        });
+
+        function switchSatellite() {
+            let opacity = +d3.select("img.satellite-overlay").style("opacity");   
+            console.log(opacity, "antes");   
+            opacity = +!opacity;
+            console.log(opacity, "depois");
+            d3.select("img.satellite-overlay").transition().duration(500).style("opacity", opacity);
+        }
+            
+        function draw_circle(center, point_on_circle) {
+
+            // remove circle layer, if it already exists
+            if (map.getLayer('circle')) map.removeLayer('circle');
+            if (map.getSource('circle')) map.removeSource('circle');
+
+            // transform coordinates into features
+            let center_ft = turf.point(center);
+            let point_on_circle_ft = turf.point(point_on_circle);
+
+            // calculate radius in km
+            let radius = turf.distance(
+                center_ft, 
+                point_on_circle_ft
+            );
+
+            console.log(radius);
+
+            // generates circle as feature
+            let circle = turf.circle(center_ft, radius);
+
+            map.addSource('circle', {
+                    'type': 'geojson',
+                    'data': circle});
+
+            map.addLayer({
+                    'id': 'circle',
+                    'type': 'fill',
+                    'source': 'circle',
+                    'layout': {},
+                    'paint': {
+                        'fill-outline-color': 'tomato',
+                        'fill-color': 'transparent',
+                        'fill-opacity': 1
+                    }
+            });
+
+            return circle;
+        }
+
+        function fitCircle(circle) {
+            let bbox_circle = turf.bbox(circle);
+
+            map.fitBounds(bbox_circle, {
+                        padding: {top: 20, bottom:20, left: 10, right: 10},
+                        duration: 1000
+                    }); 
+        }
+
+        function addTracts(circle) {
+            map.addSource('blkgp', { type: 'vector', url: 'mapbox://tiagombp.dtmho2kj' });
+
+            map.addLayer(
+                {
+                'id': 'blkgp',
+                'type': 'fill',
+                'source': 'blkgp',
+                'source-layer': 'dc_block_group-bz6zau',
+                'paint': {
+                    'fill-outline-color': '#0E4466',
+                    'fill-color': '#1074B3',
+                    'fill-opacity': 0
+                }
+            }); 
+
+            map.once('idle', function() {
+                setores = map.queryRenderedFeatures({layers: ['blkgp']});
+
+                //console.log(setores);
+
+                setores_dentro = setores
+                    .filter(d => turf.intersect(d, circle))
+                    .map(d => d.properties.GEOID);
+
+                //console.log(setores_dentro);
+
+                map.addLayer(
+                    {
+                    'id': 'setores-destacados',
+                    'type': 'fill',
+                    'source': 'blkgp',
+                    'source-layer': 'dc_block_group-bz6zau',
+                    'paint': {
+                        'fill-outline-color': 'lightyellow',
+                        'fill-color': 'lightyellow',
+                        'fill-opacity': 0.5
+                    },
+                    filter: ['in', ['get', 'GEOID'], ["literal", setores_dentro]]
+                });                    
+            })
+        }
+
+        function showFeatures() {
+            let features = map.queryRenderedFeatures({layers : ["water", "landuse", "national-park"]});
+            poligono_features = turf.union(...features);
+
+            map.addSource('features', {'type': 'geojson', 'data': poligono_features})
+
+            map.addLayer({
+                'id': 'features',
+                'type': 'fill',
+                'source': 'features',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#B3B134',
+                    'fill-opacity': .9
+                }}
+            );
+        }
+
+        function selectOneTract(GEOID) {
+            map.setFilter(
+                'setores-destacados',
+                ['==', ['get', 'GEOID'], GEOID]
+            );
+
+            setor_destacado_feats = map.queryRenderedFeatures({layers:['blkgp'], filter: ['==', ['get', 'GEOID'], GEOID]});
+            setor_destacado = turf.union(...setor_destacado_feats);
+
+            map.moveLayer("setores-destacados", "");
+            map.setPaintProperty('setores-destacados', 'fill-color', 'lightyellow');
+        }
+
+        function getUsefulTractArea() {
+
+            //let setor_selecionado = map.queryRenderedFeatures({layers:['setores-destacados']});
+
+            features_no_setor = turf.intersect(setor_destacado, poligono_features);
+            setor_liquido = turf.difference(setor_destacado, poligono_features);
+            
+            console.log(features_no_setor);
+
+            map.addSource('area_liq', {'type': 'geojson', 'data': setor_liquido})
+            map.addSource('area_inutil', {'type': 'geojson', 'data': features_no_setor})
+
+            map.addLayer({
+                'id': 'area_liq',
+                'type': 'fill',
+                'source': 'area_liq',
+                'paint': {
+                    'fill-color': 'orange',
+                    'fill-opacity': .9,
+                    'fill-outline-color': 'firebrick'
+                }}
+            );
+
+            map.addLayer({
+                'id': 'area_inutil',
+                'type': 'fill',
+                'source': 'area_inutil',
+                'paint': {
+                    'fill-color': 'firebrick',
+                    'fill-opacity': 1,
+                    'fill-outline-color': '#1074B3'
+                }}
+            );
+
+            map.setPaintProperty('setores-destacados', 'fill-color', 'ghostwhite');
+
+
+            //map.removeLayer("setores-destacados");
+            map.removeLayer("features")
+        }
+
+        function drawBbox() {
+
+            console.log(turf.bbox(setor_destacado));
+            let bbox = turf.bboxPolygon(turf.bbox(setor_destacado));
+
+            map.addSource('bbox', {'type': 'geojson', 'data': bbox})
+
+            map.addLayer({
+                'id': 'bbox',
+                'type': 'fill',
+                'source': 'bbox',
+                'paint': {
+                    'fill-color': 'transparent',
+                    'fill-outline-color' : 'rgb(47,85,151)',
+                    'fill-opacity': 1
+                }},
+            ''
+            );
+        }
+
+        function showPointsBbox() {
+
+            let pop = setor_destacado.properties.estimate;
+            let cod_setor = setor_destacado.properties.GEOID;
+
+            let bbox_setor = turf.bbox(setor_destacado);
+            let bboxPoly = turf.bboxPolygon(bbox_setor);
+
+            let area_bbox = turf.area(bboxPoly);
+
+            // ignorando as regiões não habitáveis
+
+            let setor_liquido = setor_destacado;//turf.difference(setor_destacado, poligono_features);
+            let area_liquida = turf.area(setor_liquido);
+
+            let razao = area_bbox / area_liquida;
+
+            console.log("Land Areas: \n", "Block Group: ", area_liquida, "\n BBOX: ", area_bbox, "\n Ratio: ", razao);
+
+            let pontos = turf.randomPoint(pop * razao, {bbox: bbox_setor});
+
+            let pontos_dentro = turf.pointsWithinPolygon(pontos, setor_liquido);
+
+            map.addSource('ponto_bbox'+cod_setor, {
+                'type': 'geojson',
+                'data': pontos});
+
+            map.addLayer({
+                'id': 'ponto_bbox' + cod_setor,
+                'type': 'circle',
+                'source': 'ponto_bbox'+cod_setor,
+                'layout': {},
+                'paint': {
+                    'circle-color': 'dodgerblue',
+                    'circle-radius' : 2
+                }});//,
+                //"road-minor-low");
+
+
+            map.addSource('ponto_dentro'+cod_setor, {
+                'type': 'geojson',
+                'data': pontos_dentro});
+
+            map.addLayer({
+                'id': 'ponto_dentro' + cod_setor,
+                'type': 'circle',
+                'source': 'ponto_dentro'+cod_setor,
+                'layout': {},
+                'paint': {
+                    'circle-color': 'tomato',
+                    'circle-radius' : 2,
+                    'circle-opacity': 0
+                }});//,
+                //"road-minor-low");
+
+            console.log("Population: ", pop,
+                        "\nTotal dots: ", pontos.features.length,
+                        "\nDots inside: ", pontos_dentro.features.length,
+                        "\nRatio: ", pontos.features.length / pontos_dentro.features.length,
+                        "\nDots inside / pop: ", pontos_dentro.features.length/pop)
+        }
+
+        function showPointsInside() {
+            let cod_setor = setor_destacado.properties.GEOID;
+            map.setPaintProperty('ponto_dentro'+cod_setor, "circle-opacity", 1);
+        }
+
+        function loadSatelliteImg(center) {
+
+            let width  = window.innerWidth;
+            let height = window.innerHeight;
+            
+            let url = 'https://api.mapbox.com/styles/v1/tiagombp/ckf15z5dz0i1219rdsjc5sxad/static/';
+                url += center[0]; // lon
+                url += ",";
+                url += center[1]; // lat
+                url += ",";
+                url += 15; // zoom
+                url += ",0,0/";
+                url += width + "x" + height;
+                url += "?access_token=" + tok;
+
+            console.log(url);
+
+            let img = document.querySelector("div.map-container > img.satellite-overlay");
+            img.setAttribute("src", url);
+
+        }
+
+map.on('load', function() {
+
+    loadSatelliteImg(center);
+
+    map.flyTo({
+        center: center,
+        zoom: 15,
+        maxDuration: 0
+    });
+
+        /*
+        fetch('https://caco.app/coords?lat='+lat+'&lon=' + lon, {mode: 'cors'})
+            .then(function(response) {
+                if (!response.ok) {
+                    throw Error();
+                } 
+                return response.json();
+            })
+            .then(function(resposta) { 
+        */
+        let resposta = {'radius': {'inner_point': [-77.0313265, 38.90269], 'outer_point': [-76.99335775, 38.90269]}};
+
+                let point_on_circle = resposta.radius.outer_point;
+
+
+                d3.selectAll("#log>p.botoes").on("click", function() {
+                    console.log(this.dataset.id);
+
+                    let button = this.dataset.id;
+
+                    switch (button) {
+                        case "switch-satellite":
+                            switchSatellite();
+                            break;
+                        case "draw-circle":
+                            circle = draw_circle(center, point_on_circle);
+                            break;
+                        case "fit-circle":
+                            fitCircle(circle);
+                            break;
+                        case "show-tracts":
+                            addTracts(circle);
+                            break; 
+                        case "show-features":
+                            showFeatures();
+                            break;   
+                        case "select-tract":
+                            selectOneTract("110010101002");
+                            break; 
+                        case "show-liveable":
+                            getUsefulTractArea()
+                            break; 
+                        case "show-bbox":
+                            drawBbox()
+                            break;    
+                        case "show-points-bbox":
+                            showPointsBbox()
+                            break; 
+                        case "show-points-inside":
+                            showPointsInside()
+                            break;                                                                         
+                            
+                            
+
+                    }
+                })
+            });
+
+
+//});
+
+
+
+
+
+
+    </script>
+    <script src="external_scripts/d3.v5.min.js"></script>
+    <!--<script src="clean_geojson.js"></script>-->
+    
+</body>
+</html>
