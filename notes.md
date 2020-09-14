@@ -20,6 +20,10 @@ https://www2.census.gov/geo/tiger/TIGER2019/BG/
 Estados Unidos todo
 https://www.census.gov/geographies/mapping-files/time-series/geo/carto-boundary-file.html
 
+#### Dados de população das ilhas
+https://www.census.gov/data/tables/time-series/dec/cph-series/cph-t/cph-t-8.html
+
+
 #### Gerando a máscara dos EUA
 
 https://www.keene.edu/campus/maps/tool/
@@ -109,5 +113,155 @@ xclip -sel clip < /home/tiago/.ssh/id_rsa.pub
 ssh -T git@github.com
 ```
 
+#### Google Cloud
 
+34.123.140.243
 
+sudo apt-get update
+
+curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
+
+bash miniconda.sh
+
+export PATH="$HOME/miniconda3/bin:$PATH"
+
+# test
+conda create --name app
+# environment location: /home/tiagombp/miniconda3/envs/app
+
+conda init
+sudo reboot
+
+# em algum diretorio
+conda activate app
+
+vi app.py
+
+```python
+import flask, json
+from flask import request, jsonify, after_this_request
+app = flask.Flask(__name__)
+@app.route("/", methods=['GET'])
+def answer_basic():
+    return jsonify("hi! Up and running")
+@app.route("/coords", methods=['GET'])
+def answer_coords():
+    @after_this_request
+    def add_header(response):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+    out = "{'nearest_landmark': {'bbox': [[-74.25909, 40.477399], [-73.700009, 40.917577]], 'display_text': {'compl
+ement': 'a place with really '  'bright lights',  'landmark': 'Times Square'}, 'input_point': ['40.757952', '-73.98
+558100000001'], 'place_id': '3651000', 'place_name': 'New York City', 'radius': {'first_stop': {'inner_point': [-73
+.98558100000001, 40.757952], 'outer_point': [-73.98483349023438, 40.757952]},  'second_stop': {'inner_point': [-73.
+98558100000001,  40.757952],  'outer_point': [-73.98125612207032,  40.757952]},  'today': {'inner_point': [-73.9855
+8100000001,  40.757952],  'outer_point': [-73.96870600000001,  40.757952]}}, 'state_abbr': 'NY'},  'radius': {'firs
+t_stop': {'inner_point': (-66.620918, 18.0102),  'outer_point': (-66.62017049023437, 18.0102)}, 'second_stop': {'in
+ner_point': (-66.620918, 18.0102), 'outer_point': (-66.61226824414062, 18.0102)}, 'today': {'inner_point': (-66.620
+918, 18.0102), 'outer_point': (-66.53548831250001, 18.0102)}},  'vanishing_place': {'bbox': [(-66.715244, 17.831509
+), (-66.499601, 18.172479)],  'centroid': (-66.60725882398899, 18.002726643701546),  'id': '72113',  'pop_2019': 14
+8863.0}}"
+    return jsonify(out)
+if __name__ == "__main__":
+    app.run()
+```
+
+gunicorn -b :5000 --access-logfile - --error-logfile - app:app
+
+# wsgi entry point
+
+vi wsgi.py
+
+```python
+from app import app
+
+if __name__ == "__main__":
+    app.run()
+```
+
+# systemd service
+
+sudo nano /etc/systemd/system/app.service
+
+```
+[Unit]
+#  specifies metadata and dependencies
+Description=Gunicorn instance to serve myproject
+After=network.target
+# tells the init system to only start this after the networking target has been reached
+# We will give our regular user account ownership of the process since it owns all of the relevant files
+[Service]
+# Service specify the user and group under which our process will run.
+User=tiagombp
+# give group ownership to the www-data group so that Nginx can communicate easily with the Gunicorn processes.
+Group=www-data
+# We'll then map out the working directory and set the PATH environmental variable so that the init system knows w>
+WorkingDirectory=/home/tiagombp/app
+Environment="PATH=/home/tiagombp/miniconda3/envs/app"
+# We'll then specify the commanded to start the service
+ExecStart=/home/tiagombp/miniconda3/envs/app/bin/gunicorn -b unix:app.sock --workers=5 -m 007 --access-logfile - wsgi:app
+# This will tell systemd what to link this service to if we enable it to start at boot. We want this service to st>
+[Install]
+WantedBy=multi-user.target
+```
+
+# starting and enabling gunicorn service
+
+sudo systemctl start app
+sudo systemctl enable app
+
+A new file app.sock will be created in the project directory automatically.
+
+# nginx
+
+sudo apt-get install nginx
+
+cd into /etc/nginx/
+
+sudo nano /etc/nginx/sites-available/app
+
+```
+server {
+    listen 80;
+    server_name 34.123.140.243;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/tiagombp/app/app.sock;
+    }
+}
+
+server {
+    listen 443;
+    server_name garagevis.com;
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/tiagombp/app/app.sock;
+    }
+}
+server {
+    listen 443;
+    server_name 34.123.140.243;
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/tiagombp/app/app.sock;
+    }
+}
+
+```
+
+sudo ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled
+
+# test configuration file
+sudo nginx -t
+
+sudo systemctl restart nginx
+
+# firewall
+sudo ufw allow 'Nginx Full'
+
+# certificate
+
+https://certbot.eff.org/lets-encrypt/ubuntufocal-nginx
+
+sudo snap install --classic certbot
