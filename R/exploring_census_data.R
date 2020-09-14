@@ -5,18 +5,23 @@ library(stringr)
 library(sf)
 
 census_api_key("c06729f47ca727f264fec12b37bb65ab2806188f", install = T)
+Sys.getenv("CENSUS_API_KEY")
+readRenviron("~/.Renviron")
 
 data_dec_states <- tidycensus::get_decennial(
   geography = "state", 
   variables = "P001001", 
   geometry = FALSE)
 
-usa <- tidycensus::get_acs(geography = "nation", variables = "B01003_001E", geometry = TRUE)
+# nao funciona
+#usa <- tidycensus::get_acs(geography = "nation", variables = "B01003_001E", geometry = TRUE)
 
 usa <- sf::read_sf("./data/cb_2018_us_nation_5m")
 ggplot(usa) + geom_sf()
 
 saveRDS(data_dec_states, file = "./data/states_pops_dec.rds")
+data_dec_states <- readRDS("./data/states_pops_dec.rds")
+
 
 sum(data_dec$value)
 
@@ -63,7 +68,8 @@ ggplot(plot_county) +
   geom_sf(color = NA, aes(fill = pop_faixa)) +
   scale_fill_discrete_sequential(palette = "SunsetDark") +
   labs(fill = "Faixa população") +
-  xlim(-200, -60) +
+  xlim(60,200) +
+  #xlim(-200, -60) +
   theme_bw() +
   theme(panel.grid = element_blank(),
         legend.position = "bottom",
@@ -322,3 +328,50 @@ ggplot() +
 
 dc_bg <- readRDS("./data/dc_block_group_level.rds")
 ggplot(dc_bg) + geom_sf()
+
+
+
+# Em busca dos territórios ------------------------------------------------
+
+# with_territories <- tidycensus::get_decennial(
+#   geography = "county",
+#   variables = "P001001",
+#   state = 40
+# )
+
+states_processed <- list()
+
+get_state_counties <- function(state) {
+  tryCatch(
+    states_processed[[state]] <- tidycensus::get_decennial(
+      geography = "county",
+      variables = "P001001",
+      state = state
+    ),
+    error = function(e) {
+      print(paste("State", state, "não existe."))
+    }
+  )
+}
+
+for (state_cod in 1:99) {
+  get_state_counties(state_cod)
+}
+
+get_state_counties <- function(state) {
+  tryCatch(
+    return(tidycensus::get_decennial(
+      geography = "county",
+      variables = "P001001",
+      state = state
+    )),
+    error = function(e) {
+      print(paste("State", state, "não existe."))
+      return(NULL)
+    }
+  )
+}
+
+states_counties_list <- map(1:99, get_state_counties)
+
+state_data <- do.call(rbind, states_counties_list)
