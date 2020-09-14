@@ -222,32 +222,13 @@ sudo nano /etc/nginx/sites-available/app
 
 ```
 server {
-    listen 80;
-    server_name 34.123.140.243;
-
-    location / {
-        include proxy_params;
-        proxy_pass http://unix:/home/tiagombp/app/app.sock;
-    }
-}
-
-server {
     listen 443;
-    server_name garagevis.com;
+    server_name tiago.live;
     location / {
         include proxy_params;
         proxy_pass http://unix:/home/tiagombp/app/app.sock;
     }
 }
-server {
-    listen 443;
-    server_name 34.123.140.243;
-    location / {
-        include proxy_params;
-        proxy_pass http://unix:/home/tiagombp/app/app.sock;
-    }
-}
-
 ```
 
 sudo ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled
