@@ -199,10 +199,10 @@ User=tiagombp
 # give group ownership to the www-data group so that Nginx can communicate easily with the Gunicorn processes.
 Group=www-data
 # We'll then map out the working directory and set the PATH environmental variable so that the init system knows w>
-WorkingDirectory=/home/tiagombp/app
-Environment="PATH=/home/tiagombp/miniconda3/envs/app"
+WorkingDirectory=/home/tiagombp/backend-epicenter
+Environment="PATH=/home/tiagombp/miniconda3/envs/epicentro-usa"
 # We'll then specify the commanded to start the service
-ExecStart=/home/tiagombp/miniconda3/envs/app/bin/gunicorn -b unix:app.sock --workers=5 -m 007 --access-logfile - wsgi:app
+ExecStart=/home/tiagombp/miniconda3/envs/epicentro-usa/bin/gunicorn -b unix:app.sock --workers=5 -m 007 --access-logfile - --error-logfile error.log --chdir code wsgi:app
 # This will tell systemd what to link this service to if we enable it to start at boot. We want this service to st>
 [Install]
 WantedBy=multi-user.target
