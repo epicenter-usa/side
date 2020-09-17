@@ -8,4 +8,5 @@ usa <- sf::read_sf("./data/cb_2018_us_nation_5m")
 ggplot(vanish_sf) +
   geom_sf(data = usa, fill = "ghostwhite") +
   geom_sf(fill = "tomato") + 
+  xlim(-180, -60) +
   theme_void()
