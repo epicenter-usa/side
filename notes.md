@@ -262,3 +262,63 @@ sudo certboot --nginx
    with the "certonly" option. To non-interactively renew *all* of
    your certificates, run "certbot renew"
 ```
+
+### MBTiles / The dots layer
+
+Uploading a 2.4gb MBtiles file to Mapbox.
+
+https://docs.mapbox.com/api/maps/#uploads
+
+#### Get credentials
+
+```
+curl -X POST "https://api.mapbox.com/uploads/v1/tiagombp/credentials?access_token=YOUR MAPBOX ACCESS TOKEN
+```
+
+This endpoint requires a token with uploads:write scope.
+
+accessKeyId	AWS Access Key ID
+bucket	S3 bucket name
+key	The unique key for data to be staged
+secretAccessKey	AWS Secret Access Key
+sessionToken	A temporary security token
+url	The destination URL of the file
+
+#### Install AWS CLI
+https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html
+
+#### Send mbtiles file to S3 bucket
+
+```
+$ export AWS_ACCESS_KEY_ID={accessKeyId}
+$ export AWS_SECRET_ACCESS_KEY={secretAccessKey}
+$ export AWS_SESSION_TOKEN={sessionToken}
+$ aws s3 cp /path/to/file s3://{bucket}/{key} --region us-east-1
+```
+
+#### Create the upload
+
+```bash
+curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
+  "url": "http://{bucket}.s3.amazonaws.com/{key}",
+  "tileset": "{username}.{tileset-name}"
+}' 'https://api.mapbox.com/uploads/v1/tiagombp?access_token=YOUR MAPBOX ACCESS TOKEN
+This endpoint requires a token with uploads:write scope.
+'
+```
+
+Response:
+
+```json
+{"id":"ckf8tv41o04pe29oinoazw0rp","name":null,"complete":false,"error":null,"created":"2020-09-18T22:41:46.886Z","modified":"2020-09-18T22:41:46.886Z","tileset":"tiagombp.people_usa","owner":"tiagombp","progress":0}%    
+```
+
+
+#### Checking the status
+
+```
+curl "https://api.mapbox.com/uploads/v1/tiagombp/{upload_id}?access_token=YOUR MAPBOX ACCESS TOKEN"
+```
+
+
+
