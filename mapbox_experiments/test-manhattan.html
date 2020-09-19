@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.js'></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
     <script src='external_scripts/turf.min.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.9.0/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
     <style>
 
@@ -86,7 +86,12 @@ var map = new mapboxgl.Map({
 let hoveredStateId = null
 
 function add_polygons(data) {
-    map.addSource('block_groups', {'type': 'geojson', 'data': data})
+    map.addSource('block_groups', 
+    {
+        'type': 'geojson', 
+        'data': data,
+        'promoteId': 'id' // IMPORTANTE! setFeatureState só funciona se os features tiverem um id, promote id "promove"uma propriedade do geojson para id
+    })
 
     map.addLayer({
         'id': 'block_fill',
@@ -102,8 +107,8 @@ function add_polygons(data) {
                     ['feature-state', 'hover'], 
                     false
                 ],
-                1,
-                .5
+                .5,
+                0
             ]
         }}
     );
@@ -149,10 +154,6 @@ map.on('load', function() {
 map.on('mousemove', 'block_fill', function (e) {
     if (e.features.length > 0) {
 
-        console.log({e});
-        console.log(e.features);
-        console.log(hoveredStateId);
-
         if (hoveredStateId) {
             map.setFeatureState(
                 { source: 'block_groups', id: hoveredStateId },
@@ -171,7 +172,7 @@ map.on('mousemove', 'block_fill', function (e) {
         text_outputs.each(function(d) {
             let el = d3.select(this);
             let classe = el.attr("class");
-            console.log(classe);
+            //console.log(classe);
             el.node().innerText = e.features[0].properties[classe]
         })
         //text_output.node().innerText = e.features[0].properties.estimate;
