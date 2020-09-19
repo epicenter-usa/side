@@ -375,3 +375,24 @@ get_state_counties <- function(state) {
 states_counties_list <- map(1:99, get_state_counties)
 
 state_data <- do.call(rbind, states_counties_list)
+
+
+
+
+### List of places
+
+data_acs <- tidycensus::get_acs(geography = "place", variables = "B01003_001E")
+write.csv(data_acs, file = "./data/places.csv")
+
+list_counties <- ata_acs <- tidycensus::get_acs(geography = "county", variables = "B01003_001E")
+list_states <- ata_acs <- tidycensus::get_acs(geography = "state", variables = "B01003_001E")
+
+
+number_of_places_per_state <- data_acs %>%
+  mutate(state = str_sub(GEOID, 1, 2)) %>%
+  count(state) %>%
+  arrange(desc(n)) %>%
+  left_join(list_states, by = c("state" = "GEOID")) %>%
+  mutate(avg_pop_place = estimate / n) %>%
+  select(state_fips = state, state_name = NAME, qty_places = n, state_pop = estimate, avg_pop_place)
+
