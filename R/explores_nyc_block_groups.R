@@ -33,7 +33,8 @@ blockgroups_saltlake <- tidycensus::get_acs(geography = "block group",
 area_manhattan <- st_area(blockgroups_manhattan)
 blockgroups_manhattan$area <- as.numeric(area_manhattan)
 plot_manhattan <- blockgroups_manhattan %>%
-  mutate(density = estimate / area)
+  mutate(density = estimate / area,
+         id = GEOID)
 
 pop_manhattan <- sum(blockgroups_manhattan$estimate)
 
