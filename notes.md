@@ -32,6 +32,23 @@ https://www.keene.edu/campus/maps/tool/
 
 http://bboxfinder.com/
 
+#### Mapbox
+
+To use setFeatureState, features must have an id.
+
+https://docs.mapbox.com/mapbox-gl-js/api/map/#map#setfeaturestate
+
+This method can only be used with sources that have a feature.id attribute. The feature.id attribute can be defined in three ways:
+
+For vector or GeoJSON sources, including an id attribute in the original data file.
+For vector or GeoJSON sources, using the promoteId option at the time the source is defined.
+For GeoJSON sources, using the generateId option to auto-assign an id based on the feature's index in the source data. If you change feature data using map.getSource('some id').setData(..), you may need to re-apply state taking into account updated id values.
+
+
+Options:
+
+https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/#vector-promoteId
+
 #### SO
 
 ##### Combining sf objects (spoiler: do.call(rbind, list_of_objs))
