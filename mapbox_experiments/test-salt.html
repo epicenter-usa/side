@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
+    <script src='external_scripts/turf.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+
+        .map-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        #log {
+            position: absolute;
+            top: 30px;
+            width: 300px;
+            left: 10px;
+            font-size: 0.7rem;
+            font-family: "Fira Code", monospace;
+        }
+
+        #log p {
+            margin-bottom: 1px;
+            background-color: #333;
+            color: yellow;
+        }
+/*
+        #log p em {
+            background-color: #333;
+            color: ghostwhite;
+        }
+*/
+
+      
+
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <div id='map' style='width: 100vw; height: 100vh;'></div>
+        <!--<div class="tooltip"><p>Escolha qualquer local do Universo, desde que seja o centro de Ponta Grossa.</p></div>-->
+    </div>
+
+    <div id="log">
+        <p>Block Group GEOID: <span class="GEOID"></span></p>
+        <p>Block Group NAME: <span class="NAME"></span> </p>
+        <p class="pop">Block group pop: <strong class="estimate"></strong></p>
+    </div>
+
+    <script>
+
+let circle, setores, poligono_features, 
+setores_dentro, setor_destacado, setor_liquido, features_no_setor;
+let center = [-111.945919, 40.776049];
+let lat = center[1];
+let lon = center[0];
+//let point_on_circle = [-49.034159375, -26.9196];
+
+mapboxgl.accessToken = 'pk.eyJ1IjoidGlhZ29tYnAiLCJhIjoiY2thdjJmajYzMHR1YzJ5b2huM2pscjdreCJ9.oT7nAiasQnIMjhUB-VFvmw';
+
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/tiagombp/cketv7ns10nox19p031mkqjbc', // replace this with your style URL
+    center: center,//[-50.17446345137495, -25.081729411274424], 
+    zoom: 13.5
+});
+
+let hoveredStateId = null
+
+function add_polygons(data) {
+    map.addSource('block_groups', 
+    {
+        'type': 'geojson', 
+        'data': data,
+        'promoteId': 'GEOID' // IMPORTANTE! setFeatureState só funciona se os features tiverem um id, promote id "promove"uma propriedade do geojson para id
+    })
+
+    map.addLayer({
+        'id': 'block_fill',
+        'type': 'fill',
+        'source': 'block_groups',
+        'layout': {},
+        'paint': {
+            'fill-color': '#B3B134',
+            'fill-opacity': [
+                'case',
+                [
+                    'boolean', 
+                    ['feature-state', 'hover'], 
+                    false
+                ],
+                .5,
+                0
+            ]
+        }}
+    );
+
+    map.addLayer({
+        'id': 'block_borders',
+        'type': 'line',
+        'source': 'block_groups',
+        'layout': {},
+        'paint': {
+            'line-color': '#627BC1',
+            'line-width': 2
+        }
+    });
+}
+
+map.on('load', function() {
+
+    map.flyTo({
+        center: center,
+        zoom: 13,
+        maxDuration: 0
+    });
+        
+        fetch("../data/to_mapbox/salt_blkgrp.geojson")
+            .then(function(response) {
+                if (!response.ok) {
+                    throw Error();
+                } 
+                return response.json();
+            })
+            .then(function(resposta) { 
+
+                console.log(resposta.columns);
+
+                add_polygons(resposta);
+
+            })
+});
+
+// When the user moves their mouse over the state-fill layer, we'll update the
+// feature state for the feature under the mouse.
+map.on('mousemove', 'block_fill', function (e) {
+    if (e.features.length > 0) {
+
+        if (hoveredStateId) {
+            map.setFeatureState(
+                { source: 'block_groups', id: hoveredStateId },
+                { hover: false }
+            );
+        }
+
+        hoveredStateId = e.features[0].properties.GEOID;
+
+        map.setFeatureState(
+            { source: 'block_groups', id: hoveredStateId },
+            { hover: true }
+        );
+
+        let text_outputs = d3.selectAll("#log>p>*"); 
+        text_outputs.each(function(d) {
+            let el = d3.select(this);
+            let classe = el.attr("class");
+            //console.log(classe);
+            el.node().innerText = e.features[0].properties[classe]
+        })
+        //text_output.node().innerText = e.features[0].properties.estimate;
+    }
+});
+ 
+// When the mouse leaves the state-fill layer, update the feature state of the
+// previously hovered feature.
+map.on('mouseleave', 'block_fill', function () {
+    
+    if (hoveredStateId) {
+        map.setFeatureState(
+            { source: 'block_groups', id: hoveredStateId },
+            { hover: false }
+        );
+    }
+
+    hoveredStateId = null;
+});
+
+    </script>
+    <script src="external_scripts/d3.v5.min.js"></script>
+    <!--<script src="clean_geojson.js"></script>-->
+    
+</body>
+</html>

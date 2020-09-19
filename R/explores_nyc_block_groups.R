@@ -30,6 +30,7 @@ blockgroups_saltlake <- tidycensus::get_acs(geography = "block group",
                                              variables = "B01003_001E", 
                                              geometry = TRUE)
 
+# calcula densidades
 area_manhattan <- st_area(blockgroups_manhattan)
 blockgroups_manhattan$area <- as.numeric(area_manhattan)
 plot_manhattan <- blockgroups_manhattan %>%
@@ -44,6 +45,9 @@ plot_salt<- blockgroups_saltlake %>%
   mutate(density = estimate / area)
 
 pop_salt <- sum(blockgroups_saltlake$estimate)
+
+
+
 
 ggplot(plot_manhattan) + 
   geom_sf(aes(fill = density), color = NA) +
@@ -68,3 +72,11 @@ ggplot(blockgroups_saltlake) +
 
 mht <- geojsonsf::sf_geojson(plot_manhattan)
 write_file(mht, "./data/to_mapbox/manhattan_blkgrp.geojson")
+
+
+#  saves Salt Lake City data ----------------------------------------------
+
+slc <- geojsonsf::sf_geojson(plot_salt)
+write_file(slc, "./data/to_mapbox/salt_blkgrp.geojson")
+
+
