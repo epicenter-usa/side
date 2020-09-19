@@ -4,6 +4,8 @@ library(colorspace)
 library(stringr)
 library(sf)
 
+options(tigris_use_cache = TRUE)
+
 census_api_key("c06729f47ca727f264fec12b37bb65ab2806188f", install = T)
 Sys.getenv("CENSUS_API_KEY")
 readRenviron("~/.Renviron")
@@ -384,9 +386,11 @@ state_data <- do.call(rbind, states_counties_list)
 data_acs <- tidycensus::get_acs(geography = "place", variables = "B01003_001E")
 write.csv(data_acs, file = "./data/places.csv")
 
-list_counties <- ata_acs <- tidycensus::get_acs(geography = "county", variables = "B01003_001E")
-list_states <- ata_acs <- tidycensus::get_acs(geography = "state", variables = "B01003_001E")
+list_counties <- tidycensus::get_acs(geography = "county", variables = "B01003_001E")
+list_states <- tidycensus::get_acs(geography = "state", variables = "B01003_001E")
 
+saveRDS(list_counties, file = "./data/counties.rds")
+saveRDS(list_states, file = "./data/states.rds")
 
 number_of_places_per_state <- data_acs %>%
   mutate(state = str_sub(GEOID, 1, 2)) %>%
