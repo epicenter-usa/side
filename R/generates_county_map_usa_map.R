@@ -26,6 +26,7 @@ lista_county <- list(data_acs_county, data_acs_county_dc_pr)
 
 data_acs_county_full <- do.call(rbind, lista_county)
 
+ggplot(data_acs_county_dc_pr) + geom_sf()
 
 # checks population of counties dataset -----------------------------------
 
@@ -106,3 +107,14 @@ ggplot(usa_mask) + geom_sf(fill = "lightcoral")
 
 usa_mask_geojson <- geojsonsf::sf_geojson(usa_mask)
 write_file(usa_mask_geojson, "./data/to_mapbox/usa_mask.geojson")
+
+
+
+# counties from tiger db --------------------------------------------------
+
+counties <- sf::read_sf("./data/tl_2019_us_county")
+write_file(
+  geojsonsf::sf_geojson(counties), 
+  "./data/to_mapbox/all_counties.geojson")
+
+ggplot(counties) + geom_sf()
