@@ -77,8 +77,8 @@
     </div>
 
     <div id="log">
-        <p class="botoes selecionado" data-id="style-dots"><span>Style dots</span></p>
-        <p class="botoes selecionado" data-id="new-dots"><span>New dots</span></p>
+        <p class="botoes selecionado" id="style-dots"><span>Style dots</span></p>
+        <p class="botoes selecionado" id="new-dots"><span>New dots</span></p>
         <p>Block Group GEOID: <span class="GEOID"></span></p>
         <p>Block Group NAME: <span class="NAME"></span> </p>
         <p class="pop">Block group pop: <strong class="estimate"></strong></p>
@@ -189,9 +189,9 @@ map.on('load', function() {
                 map.setPaintProperty('people', 'circle-radius', 1);
 
                 d3.selectAll("#log>p.botoes").on("click", function() {
-                    console.log(this.dataset.id);
+                    console.log(this.id);
 
-                    let button = this.dataset.id;
+                    let button = this.id;
                     let selecionado = d3.select(this).classed("selecionado");
                     d3.select(this).classed("selecionado", !selecionado);
                     
@@ -199,11 +199,11 @@ map.on('load', function() {
 
                     switch (button) {
                         case "style-dots":
-                            map.setPaintProperty('people', 'circle-opacity', selecionado ? 1 : 0)
+                            map.setPaintProperty('people', 'circle-opacity', selecionado ? 0 : 1)
 
                             break;
                         case "new-dots":
-                        map.setPaintProperty('manhattan', 'circle-opacity', selecionado ? 1 : 0)
+                            map.setPaintProperty('manhattan', 'circle-opacity', selecionado ? 0 : 1)
 
                             break;
 
