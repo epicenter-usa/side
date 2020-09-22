@@ -42,6 +42,23 @@
             background-color: #333;
             color: yellow;
         }
+
+        #log p.botoes {
+            cursor: pointer;
+            border-radius: .5em;
+            margin-bottom: 2.5em;
+            padding: .5em;
+            color: ghostwhite;
+            margin-right: .5em;
+            display: inline-block;
+            background-color: #313131;
+            border: 1px solid #313131;
+        }
+
+        #log p.botoes.selecionado {
+            background-color: ghostwhite;
+            color: #313131;
+        }   
 /*
         #log p em {
             background-color: #333;
@@ -60,6 +77,8 @@
     </div>
 
     <div id="log">
+        <p class="botoes selecionado" data-id="style-dots"><span>Style dots</span></p>
+        <p class="botoes selecionado" data-id="new-dots"><span>New dots</span></p>
         <p>Block Group GEOID: <span class="GEOID"></span></p>
         <p>Block Group NAME: <span class="NAME"></span> </p>
         <p class="pop">Block group pop: <strong class="estimate"></strong></p>
@@ -84,6 +103,27 @@ var map = new mapboxgl.Map({
 });
 
 let hoveredStateId = null
+
+function add_dots() {
+    map.addSource('people-manhattan-src',
+    {
+        'type' : 'vector',
+        'url' : 'mapbox://tiagombp.1wpdu1in'
+    })
+
+    map.addLayer({
+                      'id': 'manhattan',
+                      'type': 'circle',
+                      'source': 'people-manhattan-src',
+                      'source-layer' : 'manhattan',
+                      'paint': {
+                        'circle-radius': 1,
+                        'circle-color': 'coral',
+                        'circle-opacity': 1
+                      }
+                    },
+                    'people');
+}
 
 function add_polygons(data) {
     map.addSource('block_groups', 
@@ -145,6 +185,31 @@ map.on('load', function() {
                 console.log(resposta.columns);
 
                 add_polygons(resposta);
+                add_dots();
+                map.setPaintProperty('people', 'circle-radius', 1);
+
+                d3.selectAll("#log>p.botoes").on("click", function() {
+                    console.log(this.dataset.id);
+
+                    let button = this.dataset.id;
+                    let selecionado = d3.select(this).classed("selecionado");
+                    d3.select(this).classed("selecionado", !selecionado);
+                    
+
+
+                    switch (button) {
+                        case "style-dots":
+                            map.setPaintProperty('people', 'circle-opacity', selecionado ? 1 : 0)
+
+                            break;
+                        case "new-dots":
+                        map.setPaintProperty('manhattan', 'circle-opacity', selecionado ? 1 : 0)
+
+                            break;
+
+                    }
+                })
+                    
 
             })
 });
