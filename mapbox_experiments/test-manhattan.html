@@ -79,9 +79,9 @@
     <div id="log">
         <p class="botoes selecionado" id="style-dots"><span>Style dots</span></p>
         <p class="botoes selecionado" id="new-dots"><span>New dots</span></p>
-        <p>Block Group GEOID: <span class="GEOID"></span></p>
-        <p>Block Group NAME: <span class="NAME"></span> </p>
-        <p class="pop">Block group pop: <strong class="estimate"></strong></p>
+        <p class="log">Block Group GEOID: <span class="GEOID"></span></p>
+        <p class="log">Block Group NAME: <span class="NAME"></span> </p>
+        <p class="log">Block group pop: <strong class="estimate"></strong></p>
     </div>
 
     <script>
@@ -233,7 +233,7 @@ map.on('mousemove', 'block_fill', function (e) {
             { hover: true }
         );
 
-        let text_outputs = d3.selectAll("#log>p>*"); 
+        let text_outputs = d3.selectAll("#log>p.log>*"); 
         text_outputs.each(function(d) {
             let el = d3.select(this);
             let classe = el.attr("class");
