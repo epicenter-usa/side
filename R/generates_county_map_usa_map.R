@@ -113,6 +113,8 @@ write_file(usa_mask_geojson, "./data/to_mapbox/usa_mask.geojson")
 # counties from tiger db --------------------------------------------------
 
 counties <- sf::read_sf("./data/tl_2019_us_county")
+saveRDS(counties, "./data/all_counties.rds")
+
 write_file(
   geojsonsf::sf_geojson(counties), 
   "./data/to_mapbox/all_counties.geojson")
