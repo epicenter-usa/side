@@ -337,5 +337,31 @@ Response:
 curl "https://api.mapbox.com/uploads/v1/tiagombp/{upload_id}?access_token=YOUR MAPBOX ACCESS TOKEN"
 ```
 
+### shell scripts with parameters/arguments
+
+```bash
+vi teste.sh
+```
+
+```vi
+#!/bin/bash
+  
+echo $1
+ls $1.mbtiles -lt
+```
+
+```bash
+tiagombp@instance-1:~/people-dots$ chmod +x teste.sh
+tiagombp@instance-1:~/people-dots$ bash teste.sh people-usa
+people-usa
+-rw-r--r-- 1 tiagombp tiagombp 24576 Sep 22 17:13 people-usa.mbtiles
+```
+
+```vi
+#!/bin/bash
+echo "Processando State com FIPS $1"
+echo jsons/$1*.json | xargs geojson-merge --stream > pop$1.json
+tippecanoe -z14 -o pop$1.mbtiles -l people-usa --drop-densest-as-needed pop$1.json
+```
 
 
