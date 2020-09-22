@@ -79,6 +79,7 @@
     <div id="log">
         <p class="botoes selecionado" id="style-dots"><span>Style dots</span></p>
         <p class="botoes selecionado" id="new-dots"><span>New dots</span></p>
+        <p class="botoes selecionado" id="new-dots-z12"><span>New dots z12</span></p>
         <p class="log">Block Group GEOID: <span class="GEOID"></span></p>
         <p class="log">Block Group NAME: <span class="NAME"></span> </p>
         <p class="log">Block group pop: <strong class="estimate"></strong></p>
@@ -119,6 +120,25 @@ function add_dots() {
                       'paint': {
                         'circle-radius': 1,
                         'circle-color': 'coral',
+                        'circle-opacity': 1
+                      }
+                    },
+                    'people');
+
+    map.addSource('people-manhattan-z12-src',
+    {
+        'type' : 'vector',
+        'url' : 'mapbox://tiagombp.8q8jsmmj'
+    })
+
+    map.addLayer({
+                      'id': 'manhattan-z12',
+                      'type': 'circle',
+                      'source': 'people-manhattan-z12-src',
+                      'source-layer' : 'people',
+                      'paint': {
+                        'circle-radius': 1,
+                        'circle-color': 'green',
                         'circle-opacity': 1
                       }
                     },
@@ -207,6 +227,10 @@ map.on('load', function() {
 
                             break;
 
+                        case "new-dots-z12":
+                            map.setPaintProperty('manhattan-z12', 'circle-opacity', selecionado ? 0 : 1)
+
+                            break;
                     }
                 })
                     
@@ -264,3 +288,4 @@ map.on('mouseleave', 'block_fill', function () {
     
 </body>
 </html>
+
