@@ -364,4 +364,42 @@ echo jsons/$1*.json | xargs geojson-merge --stream > pop$1.json
 tippecanoe -z14 -o pop$1.mbtiles -l people-usa --drop-densest-as-needed pop$1.json
 ```
 
+### The CSS Fix
+
+```css
+:root {
+
+    --base-size: 8.889px;
+
+    @media (min-width: 340px) {
+        --base-size: 9px;
+    }
+
+    @media (min-width: 375px) {
+        --base-size: 10px;
+    }
+
+    @media (min-width: 1024px) {
+        --base-size: 11px;
+    }
+
+    @media (min-width: 1440px) {
+        --base-size: 12px;
+    }
+
+    --base-font-size: calc(1.8 * var(--base-size));
+}
+
+.steps p {
+    line-height: 1.5;
+    font-size: var(--base-font-size);
+    color: var(--dark-50);
+}
+```
+
+Regex to change XXrem for calc( XX * var(--base-size) ):
+
+Find:   (\d+\.?\d*)(rem) 
+Replace:  calc($1 * var(--base-size))
+
 
