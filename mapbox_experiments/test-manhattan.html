@@ -77,9 +77,10 @@
     </div>
 
     <div id="log">
-        <p class="botoes selecionado" id="style-dots"><span>Style dots</span></p>
-        <p class="botoes selecionado" id="new-dots"><span>New dots</span></p>
-        <p class="botoes selecionado" id="new-dots-z12"><span>New dots z12</span></p>
+        <p class="botoes selecionado" id="people"><span>Style dots</span></p>
+        <p class="botoes selecionado" id="manhattan"><span>New dots</span></p>
+        <p class="botoes selecionado" id="manhattan-z12"><span>New dots z12</span></p>
+        <p class="botoes selecionado" id="pop-usa"><span>New people usa</span></p>
         <p class="log">Block Group GEOID: <span class="GEOID"></span></p>
         <p class="log">Block Group NAME: <span class="NAME"></span> </p>
         <p class="log">Block group pop: <strong class="estimate"></strong></p>
@@ -139,6 +140,25 @@ function add_dots() {
                       'paint': {
                         'circle-radius': 1,
                         'circle-color': 'green',
+                        'circle-opacity': 1
+                      }
+                    },
+                    'people');
+
+    map.addSource('people-usa-src',
+    {
+        'type' : 'vector',
+        'url' : 'mapbox://tiagombp.population-usa'
+    })
+
+    map.addLayer({
+                      'id': 'pop-usa',
+                      'type': 'circle',
+                      'source': 'people-usa-src',
+                      'source-layer' : 'people',
+                      'paint': {
+                        'circle-radius': 1,
+                        'circle-color': 'yellow',
                         'circle-opacity': 1
                       }
                     },
@@ -214,24 +234,25 @@ map.on('load', function() {
                     let button = this.id;
                     let selecionado = d3.select(this).classed("selecionado");
                     d3.select(this).classed("selecionado", !selecionado);
+                    map.setPaintProperty(button, 'circle-opacity', selecionado ? 0 : 1)
                     
 
 
-                    switch (button) {
-                        case "style-dots":
-                            map.setPaintProperty('people', 'circle-opacity', selecionado ? 0 : 1)
+                    // switch (button) {
+                    //     case "style-dots":
+                    //         map.setPaintProperty('people', 'circle-opacity', selecionado ? 0 : 1)
 
-                            break;
-                        case "new-dots":
-                            map.setPaintProperty('manhattan', 'circle-opacity', selecionado ? 0 : 1)
+                    //         break;
+                    //     case "new-dots":
+                    //         map.setPaintProperty('manhattan', 'circle-opacity', selecionado ? 0 : 1)
 
-                            break;
+                    //         break;
 
-                        case "new-dots-z12":
-                            map.setPaintProperty('manhattan-z12', 'circle-opacity', selecionado ? 0 : 1)
+                    //     case "new-dots-z12":
+                    //         map.setPaintProperty('manhattan-z12', 'circle-opacity', selecionado ? 0 : 1)
 
-                            break;
-                    }
+                    //         break;
+                    //}
                 })
                     
 
